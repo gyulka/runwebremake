@@ -1,6 +1,7 @@
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+var XMLHttpRequest = require('xhr2');
 http = new XMLHttpRequest();
 http.open('GET', 'http://127.0.0.1:5000/get_token',false);
 http.send()
@@ -95,7 +96,7 @@ while (true) {
     i=i+1
 
 }}
-inv = await get_inv()
-await func(inv)
-inv = await get_inv()
-await func(inv)
+inv = get_inv()
+func(inv)
+inv = get_inv()
+func(inv)
