@@ -1,26 +1,21 @@
 async function run(){
+const request = require('sync-request');
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
- var XMLHttpRequest = require('xhr2');
-http = new XMLHttpRequest();
-//http.onreadystatechange =function(){
-//    if (this.readyState == 4 && this.status == 200) {
-//       // Typical action to be performed when the document is ready:
-//       console.log(this.responseText)
-//       get_inv()
-//    }}
-http.open('GET', 'http://127.0.0.1:5000/get_token',);
-await http.send()
-await sleep(2000)
-console.log(http.readyState)
+var XMLHttpRequest = require('xhr2');
+http = request;
+var res=request('GET','http://127.0.0.1:5000/get_token')
 
-api=''
+
+await sleep(2000)
+console.log(res.getBody('utf8'))
+api=
 x = {
     'accept': 'application/json, text/plain, */*',
     'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'ru,en;q=0.9',
-    'authorization': http.responseText,
+    'authorization': res.getBody('utf8'),
     'content-length': '22',
     'content-type': 'application/json;charset=UTF-8',
     'origin': 'https://csgo3.run',
@@ -34,25 +29,17 @@ x = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 YaBrowser/21.9.0.1044 Yowser/2.5 Safari/537.36'
 }
 async function get_inv(i) {
-    http = new XMLHttpRequest();
-    http.open('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', );
-    http.setRequestHeader('authorization', x['authorization']);
-    await http.send();
-    await sleep(2000)
-    console.log(http.readyState)
-//    console.log(http.responseText)
-    let response = JSON.parse(http.responseText);
+    res=request('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', {'headers':{
+    'authorization': x['authorization'],},})
+//    console.log(res.getBody('utf8'))
+    let response = JSON.parse(res.getBody('utf8'));
     inv = response['data']['user']['items'];
-    return inv
-   }
+    return inv;
+}
 async function get_balance(){
     http = new XMLHttpRequest();
-    http.open('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', );
-    http.setRequestHeader('authorization', x['authorization']);
-    http.send();
-    await sleep(2000)
-    console.log(http.readyState)
-    let response = JSON.parse(http.responseText);
+    res=request('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', {'headers':{ 'authorization': x['authorization']}});
+    let response = JSON.parse(res.getBody('utf8'));
     balance = response['data']['user']['balance'];
     return balance;
 }
@@ -66,21 +53,22 @@ async function func(ids) {
 async function get_game(i) {
 while(true){try{
     http = new XMLHttpRequest();
-    http.open('GET', 'https://csgorun.direct/games/' + i);
-    http.send()
-    sleep(2000)
-    while (http.status != 200) {
-        http.open('GET', 'https://csgorun.direct/games/' + i);
-        http.send()
-        await sleep(2000)
-        console.log(http.resonseText)
+    res=request('GET', 'https://csgorun.direct/games/' + i);
+    while (res.statusCode != 200) {
+    console.log(res.statusCode,i)
+        res=request('GET', 'https://csgorun.direct/games/' + i);
+        await sleep(1000)
     }
-//console.log(http.responseText);
-    response = JSON.parse(http.responseText)['data']['crash']
+console.log(res.getBody('utf8'));
+    response = JSON.parse(res.getBody('utf8'))['data']['crash']
     return response}
 catch(err){console.log(err)}
 }}
-
+async function make_bet(lis){
+http = new XMLHttpRequest();
+    http.open('POST', 'http://127.0.0.1:5000/append');
+    http.send(JSON.stringify({ 'id': lis[1],'crash':lis[0]}))
+}
 
 async function main(i) {
 
@@ -100,29 +88,21 @@ while (true) {
         console.log(lis[lis.length - 1])
         if (true) {
             inv = await get_inv()
-          sleep(100)
             func(inv)
-          sleep(100)
             make_bet(lis[lis.length - 1])
                 }
     }
     i=i+1
 
 }}
-
-console.log(-1)
-inv = await get_inv()
-await func(inv)
-inv = await get_inv()
-console.log(inv)
-await func(inv)
+inv = get_inv()
+func(inv)
+inv = get_inv()
+func(inv)
 const prompt = require('prompt-sync')({sigint: true});
 
-const start = prompt('start=');
-console.log(start);
-main(start)
-
-
-//main(4371394)
+//const start = prompt('start=');
+//console.log(parseInt(start));
+main(4372078)
 }
-run();
+run()

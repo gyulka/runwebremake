@@ -8,6 +8,7 @@ from config import *
 import json
 import sqlite3
 from pprint import pprint
+
 app = Flask(__name__)
 CORS(app)
 dollar = 91.29
@@ -145,6 +146,7 @@ class Tg():
     def send_messege(self, text):
         self.method('sendMessage', {'chat_id': self.user_id, 'text': text})
 
+
 def update_weapons(lis=None):
     if lis is None:
         lis = []
@@ -226,7 +228,7 @@ class Inventory:
                 self.weapons.append(Weapon(good_id=0, self_id=int(res.json()['data']['userItems']['newItems'][0]['id']),
                                            cost=res.json()['data']['userItems']['newItems'][0]['price']))
                 self.weapons = [i for i in self.weapons if i not in to_change]
-                self.balance=res.json()['data']['balance']
+                self.balance = res.json()['data']['balance']
 
             except Exception as error:
                 print(error.__str__())
@@ -251,7 +253,7 @@ class Inventory:
             time.sleep(1)
             x += 1
             print(response.text)
-        if not response:
+        if not response and response.text.__contains__('64'):
             self.flag = False
             tg.send_messege(f'у вас бан, {response.text},\n{data}')
 
