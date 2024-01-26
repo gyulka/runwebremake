@@ -1,21 +1,16 @@
-async function run(){
-const request = require('sync-request');
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-var XMLHttpRequest = require('xhr2');
-http = request;
-var res=request('GET','http://127.0.0.1:5000/get_token')
-
-
-await sleep(2000)
-console.log(res.getBody('utf8'))
+http = new XMLHttpRequest();
+http.open('GET', 'http://127.0.0.1:5000/get_token',false);
+http.send()
+console.log(http.responseText)
 api=
 x = {
     'accept': 'application/json, text/plain, */*',
     'accept-encoding': 'gzip, deflate, br',
     'accept-language': 'ru,en;q=0.9',
-    'authorization': res.getBody('utf8'),
+    'authorization': http.responseText,
     'content-length': '22',
     'content-type': 'application/json;charset=UTF-8',
     'origin': 'https://csgo3.run',
@@ -28,18 +23,22 @@ x = {
     'sec-fetch-site': 'same-site',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 YaBrowser/21.9.0.1044 Yowser/2.5 Safari/537.36'
 }
+x['authorization']=http.responseText
 async function get_inv(i) {
-    res=request('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', {'headers':{
-    'authorization': x['authorization'],},})
-//    console.log(res.getBody('utf8'))
-    let response = JSON.parse(res.getBody('utf8'));
+    http = new XMLHttpRequest();
+    http.open('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', false);
+    http.setRequestHeader('authorization', x['authorization']);
+    http.send();
+    let response = JSON.parse(http.responseText);
     inv = response['data']['user']['items'];
     return inv;
 }
 async function get_balance(){
     http = new XMLHttpRequest();
-    res=request('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', {'headers':{ 'authorization': x['authorization']}});
-    let response = JSON.parse(res.getBody('utf8'));
+    http.open('GET', 'https://csgorun.direct/current-state?montaznayaPena=null', false);
+    http.setRequestHeader('authorization', x['authorization']);
+    http.send();
+    let response = JSON.parse(http.responseText);
     balance = response['data']['user']['balance'];
     return balance;
 }
@@ -53,14 +52,15 @@ async function func(ids) {
 async function get_game(i) {
 while(true){try{
     http = new XMLHttpRequest();
-    res=request('GET', 'https://csgorun.direct/games/' + i);
-    while (res.statusCode != 200) {
-    console.log(res.statusCode,i)
-        res=request('GET', 'https://csgorun.direct/games/' + i);
+    http.open('GET', 'https://csgorun.direct/games/' + i);
+    http.send()
+    while (http.status != 200) {
+        http.open('GET', 'https://csgorun.direct/games/' + i);
+        http.send()
         await sleep(1000)
     }
-console.log(res.getBody('utf8'));
-    response = JSON.parse(res.getBody('utf8'))['data']['crash']
+console.log(http.responseText);
+    response = JSON.parse(http.responseText)['data']['crash']
     return response}
 catch(err){console.log(err)}
 }}
@@ -95,14 +95,7 @@ while (true) {
     i=i+1
 
 }}
-inv = get_inv()
-func(inv)
-inv = get_inv()
-func(inv)
-const prompt = require('prompt-sync')({sigint: true});
-
-//const start = prompt('start=');
-//console.log(parseInt(start));
-main(4372078)
-}
-run()
+inv = await get_inv()
+await func(inv)
+inv = await get_inv()
+await func(inv)

@@ -1,0 +1,121 @@
+async function run(){
+const request = require('sync-request');
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+var XMLHttpRequest = require('xhr2');
+http = request;
+var res=request('GET','http://127.0.0.1:5000/get_token')
+
+
+await sleep(2000)
+console.log(res.getBody('utf8'))
+api="https://onemails.net"
+x = {
+    'accept': 'application/json, text/plain, */*',
+    'accept-encoding': 'gzip, deflate, br',
+    'accept-language': 'ru,en;q=0.9',
+    'authorization': res.getBody('utf8'),
+    'content-length': '22',
+    'content-type': 'application/json;charset=UTF-8',
+    'origin': 'https://csgo3.run',
+    'referer': 'https://csgo3.run/',
+    'sec-ch-ua': '"Yandex";v="21", " Not;A Brand";v="99", "Chromium";v="93"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-site',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 YaBrowser/21.9.0.1044 Yowser/2.5 Safari/537.36'
+}
+async function get_inv(i) {
+    res=request('GET', api+'/current-state?montaznayaPena=null', {'headers':{
+    'authorization': x['authorization'],},})
+//    console.log(res.getBody('utf8'))
+    let response = JSON.parse(res.getBody('utf8'));
+    inv = response['data']['inventory']['items'];
+    return inv;
+}
+async function get_balance(){
+    http = new XMLHttpRequest();
+    res=request('GET', api+'/current-state?montaznayaPena=null', {'headers':{ 'authorization': x['authorization']}});
+    let response = JSON.parse(res.getBody('utf8'));
+    balance = response['data']['auth']['user']['balance'];
+    return balance;
+}
+async function func(ids) {
+    let x=0;
+    http = new XMLHttpRequest();
+    http.open('POST', 'http://127.0.0.1:5000/update_inv');
+    http.send(JSON.stringify({ 'userItemIds': ids,'balance':await get_balance()}))
+    return http.responseText
+}
+async function get_game(i) {
+while(true){try{
+    http = new XMLHttpRequest();
+    res=request('GET', api+'/games/' + i);
+    while (res.statusCode != 200) {
+    console.log(res.statusCode,i)
+        res=request('GET', api+'/games/' + i);
+        await sleep(1000)
+    }
+// console.log(res.getBody('utf8'));
+    response = JSON.parse(res.getBody('utf8'))['data']['crash']
+    return response}
+catch(err){console.log(err)}
+}}
+async function make_bet(lis){
+http = new XMLHttpRequest();
+    http.open('POST', 'http://127.0.0.1:5000/append');
+    http.send(JSON.stringify({ 'id': lis[1],'crash':lis[0]}))
+}
+
+async function main(i) {
+
+let lis = []
+while (true) {
+    let crash = await get_game(i)
+    if (lis.length > 0) {
+        if (lis[lis.length - 1][1] != i) {
+            lis.push([crash, i])
+        }
+    }
+    else {
+        lis.push([crash, i])
+    }
+    if (lis.length > 5) {
+        lis.shift()
+        console.log(lis[lis.length - 1])
+        if (true) {
+            inv = await get_inv()
+            func(inv)
+            make_bet(lis[lis.length - 1])
+                }
+    }
+    i=i+1
+
+}}
+inv = get_inv()
+func(inv)
+inv = get_inv()
+func(inv)
+
+//const start = prompt('start=');
+//console.log(parseInt(start));
+l=4379747
+r=l*2
+while(r-l>1){
+    if((l+r)%2==1){
+    m=(l+r-1)/2}
+    if((l+r)%2==0){m=(l+r)/2}
+    sleep(500)
+    res=request('GET','https://csgorun.direct/games/' + m)
+    if (res.statusCode!=200){
+        r=m
+    }
+    else{l=m}
+}
+console.log(l)
+main(l-5)
+}
+run()
